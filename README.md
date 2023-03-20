@@ -1,4 +1,19 @@
-# react-cache-busting
+# CacheBusting React Component
+
+A React component for ensuring that the user's browser cache is up-to-date with the latest version of the web application.
+
+The component uses the version number specified in the application's package.json file, and compares it to the version number specified in a meta.json file located at the root of the web application.
+
+If the version numbers do not match, the component will force a cache refresh and reload the web application to ensure that the latest version is loaded.
+
+## Props
+
+`children`
+The component expects a single child function that takes an object with the following properties:
+
+- `loading`: A boolean value indicating whether the component is still loading the meta.json file.
+- `isLatestVersion`: A boolean value indicating whether the user's browser cache is up-to-date with the latest version.
+- `refreshCacheAndReload`: A function that can be called to force a cache refresh and reload the web application.
 
 ## Usage
 
