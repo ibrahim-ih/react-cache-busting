@@ -2,6 +2,7 @@
 
 ## Usage
 
+### Class Component
 ```javascript
 import React from 'react'
 import PropTypes from 'prop-types'
@@ -98,5 +99,76 @@ class CacheBusting extends React.Component {
 }
 
 export default CacheBuster
+
+```
+
+### Functional Component
+
+```javascript
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import packageJson from '../package.json';
+
+global.appVersion = packageJson.version;
+
+const semverGreaterThan = (versionA, versionB) => {
+  const versionsA = versionA.split(/\./g);
+  const versionsB = versionB.split(/\./g);
+  while (versionsA.length || versionsB.length) {
+    const a = Number(versionsA.shift());
+    const b = Number(versionsB.shift());
+    if (a === b) continue;
+    return a > b || isNaN(b);
+  }
+  return false;
+};
+
+function CacheBusting({ children }) {
+  const [loading, setLoading] = useState(true);
+  const [isLatestVersion, setIsLatestVersion] = useState(false);
+
+  const refreshCacheAndReload = () => {
+    console.log('Clearing cache and hard reloading...');
+    if (caches) {
+      caches.keys().then(names => {
+        for (const name of names) caches.delete(name);
+      });
+    }
+    window.location.reload(true);
+  };
+
+  useEffect(() => {
+    fetch('/meta.json')
+      .then(response => response.json())
+      .then(meta => {
+        const latestVersion = meta.version;
+        const currentVersion = global.appVersion;
+        const shouldForceRefresh = semverGreaterThan(
+          latestVersion,
+          currentVersion
+        );
+        if (shouldForceRefresh) {
+          console.log(`We have a new version - ${latestVersion}. Should force refresh`);
+          setIsLatestVersion(false);
+        } else {
+          console.log(`You already have the latest version - ${latestVersion}. No cache refresh needed.`);
+          setIsLatestVersion(true);
+        }
+        setLoading(false);
+      });
+  }, []);
+
+  return children({
+    loading,
+    isLatestVersion,
+    refreshCacheAndReload,
+  });
+}
+
+CacheBusting.propTypes = {
+  children: PropTypes.func.isRequired,
+};
+
+export default CacheBusting;
 
 ```
